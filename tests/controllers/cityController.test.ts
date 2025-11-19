@@ -31,4 +31,21 @@ describe('CityController', ()=>{
     expect(res.status).toBe(200)
     expect(res.body.message).toMatch(/deleted successfully/)
   })
+
+  test('handleGetInsightForCity returns 404 when not found', async ()=>{
+    const svc: any = { getInsightForCity: async ()=> null }
+    const controller = new CityController(svc)
+    const res = await controller.handleGetInsightForCity('NoCity')
+    expect(res.status).toBe(404)
+    expect(res.body).toHaveProperty('error')
+  })
+
+  test('handleGetInsightForCity returns insight on success', async ()=>{
+    const insight = { city: 'X', temperatureC: 10 }
+    const svc: any = { getInsightForCity: async ()=> insight }
+    const controller = new CityController(svc)
+    const res = await controller.handleGetInsightForCity('X')
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual(insight)
+  })
 })

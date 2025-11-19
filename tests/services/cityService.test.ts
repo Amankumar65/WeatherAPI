@@ -2,10 +2,11 @@ import { CityService } from "../../src/services/CityService"
 
 describe('CityService', ()=>{
   const nominatimMock: any = { findCity: async (name: string) => ({ lat: '1', lon: '2' }) }
+  const openMatioMock: any = { findInsight: async (lat:number, lon:number) => ({ current_weather: { temperature: 20, windspeed: 10, time: '2025-01-01T00:00' } }) }
   let service: CityService
 
   beforeEach(()=>{
-    service = new CityService(nominatimMock)
+    service = new CityService(nominatimMock, openMatioMock)
   })
 
   test('adds and lists city', async ()=>{
@@ -33,5 +34,23 @@ describe('CityService', ()=>{
   test('delete returns false if not found', ()=>{
     const ok = service.deleteCity('NoCity')
     expect(ok).toBe(false)
+  })
+
+  test('getInsightForCity returns null when city not present', async ()=>{
+    const r = await service.getInsightForCity('Unknown')
+    expect(r).toBeNull()
+  })
+
+  test('getInsightForCity returns insight for existing city', async ()=>{
+    await service.addCity('Lisbon')
+    const insight: any = await service.getInsightForCity('Lisbon')
+    expect(insight).toBeDefined()
+    expect(insight.city).toBe('Lisbon')
+    expect(insight.temperatureC).toBe(20)
+    expect(insight.temperatureF).toBe((20 * 9/5) + 32)
+    expect(insight.windspeedKpH).toBe(10)
+    expect(insight.windspeedMpH).toBe(6)
+    expect(insight.windCategory).toBe('Light breeze')
+    expect(insight.timeStamp).toBe('2025-01-01T00:00')
   })
 })
