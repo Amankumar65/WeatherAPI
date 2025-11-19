@@ -1,15 +1,16 @@
 import { injectable } from "inversify";
 
 @injectable()
-export class NominatimService {
-    private endpoint = "https://nominatim.openstreetmap.org/search";
+export class OpenMatioService {
+    private endpoint = "https://api.open-meteo.com/v1/forecast";
 
-    async findCity(cityName:string): Promise<any> {
+
+    async findInsight(latitude:number,longitude: number): Promise<any> {
         try{
             const params = new URLSearchParams({
-                city: cityName,
-                format: 'json',
-                limit: '1'
+                latitude:latitude.toString(),
+                longitude:longitude.toString(),
+                current_weather: 'true'
             })
 
             const url = `${this.endpoint}?${params.toString()}`
@@ -22,19 +23,19 @@ export class NominatimService {
             })
 
             if(!response.ok){
-                console.log("Nominatim returned non-200 status:", response.status)
+                console.log("OpenMatio returned non-200 status:", response.status)
                 return null
             }
 
             const data = await response.json();
 
-            if(Array.isArray(data) && data.length>0){
-                return data[0]
+            if(data){
+                return data
             }
 
             return null;
         }catch (e){
-            console.error("NominatimService error", e.message ?? e)
+            console.error("OpenMatioService error", e.message ?? e)
             return null;
         }
     }

@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { TYPES } from "../types.js";
-import { CityService } from "../services/cityService.js";
 import { citySchema } from "../validators/cityValidator.js";
+import { CityService } from "../services/CityService.js";
 
 @injectable()
 export class CityController {
@@ -30,9 +30,12 @@ export class CityController {
         return {
             status: 201,
             body: {
-                name: city.name,
-                latitude: city.latitude,
-                longitude: city.longitude
+                message: "City added successfully",
+                data: {
+                    name: city.name,
+                    latitude: city.latitude,
+                    longitude: city.longitude
+                }
             }
         }
     }
@@ -51,6 +54,18 @@ export class CityController {
         const ok = this.cityService.deleteCity(name)
         if(!ok) return { status: 404, body: {error: "City not found"}}
 
-        return { status: 204, body: null}
+        return { status: 200, body: {
+            message: "City deleted successfully"
+        }}
+    }
+
+    handleGetInsightForCity = async (name: string) => {
+        const insight = await this.cityService.getInsightForCity(name);
+
+        if(!insight){
+            return { status: 404, body: {error: "City not found"}}
+        }
+
+        return { status: 200, body: insight}
     }
 }
