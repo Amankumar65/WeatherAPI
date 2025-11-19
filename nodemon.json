@@ -1,6 +1,6 @@
 {
     "watch": ["src"],
-    "ext": "ts",
+    "ext": "ts,json",
     "ignore": ["src/**/*.spec.ts"],
-    "exec": "ts-node -r tsconfig-paths/register src/server.ts"
+    "exec": "node --loader ts-node/esm -r reflect-metadata src/server.ts"
 }
