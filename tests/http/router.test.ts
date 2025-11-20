@@ -29,7 +29,7 @@ test('router POST /api/v1/cities calls controller', async ()=>{
     method: 'POST',
     headers: { host: 'localhost:3000' },
     on: (event: string, cb: any) => {
-      if (event === 'data') cb(Buffer.from(JSON.stringify({ name: 'Alex' })))
+      if (event === 'data') cb(Buffer.from(JSON.stringify({ name: 'Aman' })))
       if (event === 'end') cb()
     }
   }

@@ -42,10 +42,10 @@ describe('CityService', ()=>{
   })
 
   test('getInsightForCity returns insight for existing city', async ()=>{
-    await service.addCity('Lisbon')
-    const insight: any = await service.getInsightForCity('Lisbon')
+    await service.addCity('Mumbai')
+    const insight: any = await service.getInsightForCity('Mumbai')
     expect(insight).toBeDefined()
-    expect(insight.city).toBe('Lisbon')
+    expect(insight.city).toBe('Mumbai')
     expect(insight.temperatureC).toBe(20)
     expect(insight.temperatureF).toBe((20 * 9/5) + 32)
     expect(insight.windspeedKmH).toBe(10)
