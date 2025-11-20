@@ -2,11 +2,11 @@ import { CityService } from "../../src/services/CityService"
 
 describe('CityService', ()=>{
   const nominatimMock: any = { findCity: async (name: string) => ({ lat: '1', lon: '2' }) }
-  const openMatioMock: any = { findInsight: async (lat:number, lon:number) => ({ current_weather: { temperature: 20, windspeed: 10, time: '2025-01-01T00:00' } }) }
+  const weatherMock: any = { getWeatherForCity: async (city: any) => ({ city: city.name, temperatureC: 20, temperatureF: (20 * 9/5) + 32, windspeedKmH: 10, windspeedMpH: 6, windCategory: 'Light breeze', timeStamp: '2025-01-01T00:00' }) }
   let service: CityService
 
   beforeEach(()=>{
-    service = new CityService(nominatimMock, openMatioMock)
+    service = new CityService(nominatimMock, weatherMock)
   })
 
   test('adds and lists city', async ()=>{
@@ -48,7 +48,7 @@ describe('CityService', ()=>{
     expect(insight.city).toBe('Lisbon')
     expect(insight.temperatureC).toBe(20)
     expect(insight.temperatureF).toBe((20 * 9/5) + 32)
-    expect(insight.windspeedKpH).toBe(10)
+    expect(insight.windspeedKmH).toBe(10)
     expect(insight.windspeedMpH).toBe(6)
     expect(insight.windCategory).toBe('Light breeze')
     expect(insight.timeStamp).toBe('2025-01-01T00:00')
