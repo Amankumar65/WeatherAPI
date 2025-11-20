@@ -1,14 +1,8 @@
 import { inject, injectable } from "inversify";
 import { TYPES } from "../types.js";
 import { NominatimService } from "./NominatimService.js";
-import { OpenMatioService } from "./OpenmatioService.js";
-import { timeStamp } from "console";
-
-interface City {
-    name: string;
-    latitude: number;
-    longitude: number;
-}
+import { WeatherService } from "./WeatherService.js";
+import { City, WeatherInsight } from "../models/types.js";
 
 @injectable()
 export class CityService {
@@ -16,8 +10,21 @@ export class CityService {
 
     constructor(
         @inject(TYPES.NominatimService) private nominatimService: NominatimService,
-        @inject(TYPES.OpenMatioService) private openMatioService: OpenMatioService
+        @inject(TYPES.WeatherService) private weatherService: WeatherService
     ){}
+
+    private insertSorted(city: City) {
+        const key = city.name.toLowerCase();
+        let low = 0, high = this.cities.length;
+        while (low < high) {
+            const mid = (low + high) >>> 1;
+            if (this.cities[mid].name.toLowerCase() < key) low = mid + 1;
+            else high = mid;
+        }
+
+        // Insert at index low
+        this.cities.splice(low, 0, city);
+    }
 
     async addCity(name: string){
         const exists = this.cities.find(c=>c.name.toLowerCase()===name.toLowerCase())
@@ -32,7 +39,7 @@ export class CityService {
             longitude: nominatimRaw.lon
         }
 
-        this.cities.push(city)
+        this.insertSorted(city)
 
         return {conflict: false, city}
     }
@@ -52,31 +59,38 @@ export class CityService {
         const city = this.cities.find(c=>c.name.toLowerCase()===name.toLowerCase())
         if(!city) return null;
 
-        const openMatioRaw = await this.openMatioService.findInsight(city.latitude, city.longitude)
-
-        const windCategory = (windspeedKpH: number | null): string | null => {
-
-            if(windspeedKpH===null) return null;
-
-            if(windspeedKpH<1) return 'Calm'
-            if(windspeedKpH>=1 && windspeedKpH<=5) return 'Light air'
-            if(windspeedKpH>5 && windspeedKpH<=11) return 'Light breeze'
-            if(windspeedKpH>11 && windspeedKpH<=19) return 'Gentle breeze'
-            if(windspeedKpH>19 && windspeedKpH<=28) return 'Moderate breeze'
-            
-            return 'Strong Wind'
-        }
-
-        const insight = {
-            city: city.name,
-            temperatureC : openMatioRaw?.current_weather?.temperature ?? null,
-            temperatureF : openMatioRaw?.current_weather?.temperature ? (openMatioRaw.current_weather.temperature * 9/5) + 32 : null,
-            windspeedKpH: openMatioRaw?.current_weather?.windspeed ?? null,
-            windspeedMpH: openMatioRaw?.current_weather?.windspeed ? parseFloat(Math.round(openMatioRaw.current_weather.windspeed * 0.621371).toFixed(2)) : null,
-            windCategory: windCategory(openMatioRaw?.current_weather?.windspeed ?? null),
-            timeStamp: openMatioRaw?.current_weather?.time ?? null
-        }
+        const insight = await this.weatherService.getWeatherForCity(city)
 
         return insight;
+    }
+
+
+    searchByPrefix(prefix: string): City[] {
+        const pre = prefix.toLowerCase();
+
+        // find first occurrence
+        let low= 0, high = this.cities.length;
+
+        while (low < high) {
+            const mid = (low + high) >>> 1;
+            const name = this.cities[mid].name.toLowerCase();
+
+            // if name is less than prefix (lexographically), go right
+            if (name < pre) low = mid + 1;
+            else high = mid;
+        }
+
+        const result: City[] = [];
+
+        // collect all matching entries
+        for (let i = low; i < this.cities.length; i++) {
+            if (this.cities[i].name.toLowerCase().startsWith(pre)) {
+                result.push(this.cities[i]);
+            } else {
+                break; // since sorted, no more matches possible
+            }
+        }
+
+        return result;
     }
 }

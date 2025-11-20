@@ -47,6 +47,21 @@ export async function router(req: IncomingMessage, res: ServerResponse){
         return;
     }
 
+    if(method==='GET' && url.pathname === '/api/v1/cities/search'){
+        const prefix = url.searchParams.get('prefix') || '';
+        const result = controller.handleSearch(prefix);
+        res.writeHead(result.status,{"Content-Type":"application/json"})
+        res.end(JSON.stringify(result.body))
+        return;
+    }
+
+    if(method==='GET' && url.pathname === '/api/v1/cities/stats'){
+        const result = await controller.handleStats();
+        res.writeHead(result.status,{"Content-Type":"application/json"})
+        res.end(JSON.stringify(result.body))
+        return;
+    }
+
     res.writeHead(404,{"Content-Type":"application/json"})
     res.end(JSON.stringify({error: "Not Found"}))
 }
